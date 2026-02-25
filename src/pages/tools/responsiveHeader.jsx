@@ -133,22 +133,17 @@ class ResponsiveHeader extends Component {
           <div className={`sideBar ${this.state.openUp ? 'openUp' : ''}`}>
             <div className="header-logo">
               <Link to="/dashboard">
-                <img src="image_asoroauto.webp" alt="Logo" /> {/* Replace with your logo */}
+                <img src="/LOGO.png" alt="G-OBD Logo" /> {/* Replace with your logo */}
               </Link>
             </div>
             <ul>
               <li><Link to="/dashboard">Dashboard</Link></li>
               <li className='messages'><Link to="/individuals">GOBD Users</Link>
               {this.state.gobdUsers.length !==0 || null? <span>{this.state.gobdUsers.length}</span>: ""}</li>
-              <li className='messages'><Link to="/individuals_ChatUsers">Site users</Link>
-             {this.state.siteUsers.length !==0 || null? <span>{this.state.siteUsers.length}</span>: ""}
-             </li>
               <li className='messages'><Link to="/car_diagnoses">Car Diagnoses</Link>
              {this.state.diagnoses.length !==0 || null? <span>{this.state.diagnoses.length}</span>: ""}
              </li>
-              <li className='messages'><Link to="/messages">Messages</Link>
-              {this.state.unseenMessages !== 0 || null? <span>{this.state.unseenMessages}</span>: ""}
-              </li>
+              
               {/* <li><Link to="/support">Support</Link></li> */}
             </ul>
             <div className="header-search">

@@ -148,13 +148,21 @@ body {
   display: none;
 }
 .sideBar .header-logo {
-  background: rgb(6, 6, 124);
+  background: rgb(27, 27, 75);
   width: 100%;
   height: 3em;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 4.5em;
+}
+.sideBar .header-logo img {
+  max-height: 4.3em;
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 .sideBar .header-search {
   width: 100%;
@@ -906,11 +914,11 @@ body {
   overflow: hidden;
   font-family: sans-serif;
   font-size: 12px;
-  background: rgba(42, 0, 231, 0.137);
-  background: url(../public/image_asoroauto.webp), rgb(255, 255, 255);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: 20%;
+  background-color: #f5f7fb;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), url(../public/LOGO.png);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 100% 100%, 150vmin auto;
+  background-position: center center, center center;
 }
 .signup-container .inner {
   width: 30%;
@@ -924,6 +932,10 @@ body {
 @media (max-width: 768px) {
   .signup-container .inner {
     min-width: 23em;
+    border: none;
+    background: transparent;
+    background-color: transparent;
+    box-shadow: none;
   }
 }
 .signup-container h2 {
@@ -973,11 +985,19 @@ body {
   overflow: hidden;
   font-family: sans-serif;
   font-size: 14px;
-  background: rgba(42, 0, 231, 0.137);
-  background: url(../public/image_asoroauto.webp), rgb(255, 255, 255);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: 20%;
+  background-color: #f5f7fb;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.22)), url(../public/LOGO.png);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 100% 100%, 150vmin auto;
+  background-position: center center, center center;
+}
+
+@media (max-width: 768px) {
+  .signup-container,
+  .login-container {
+    background-size: 100% 100%, contain;
+    background-position: center center, center center;
+  }
 }
 .login-container .inner {
   width: 30%;
@@ -991,6 +1011,10 @@ body {
 @media (max-width: 768px) {
   .login-container .inner {
     min-width: 23em;
+    border: none;
+    background: transparent;
+    background-color: transparent;
+    box-shadow: none;
   }
 }
 .login-container h2 {
@@ -1014,14 +1038,30 @@ body {
 .login-container button {
   width: 100%;
   padding: 10px;
-  background-color: rgba(0, 0, 255, 0.397);
+  background-color: #0b1f6a;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 .login-container button:hover {
-  background-color: rgba(0, 0, 139, 0.582);
+  background-color: #08134c;
+}
+
+.login-container span,
+.signup-container span {
+  display: block;
+  margin-top: 14px;
+}
+.login-container span a,
+.signup-container span a {
+  color: #0b1f6a;
+  text-decoration: none;
+  font-weight: 600;
+}
+.login-container span a:hover,
+.signup-container span a:hover {
+  text-decoration: underline;
 }
 .login-container .error {
   color: red;

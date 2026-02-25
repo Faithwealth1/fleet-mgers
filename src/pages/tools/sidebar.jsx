@@ -18,16 +18,14 @@ class Sidebar extends Component {
       <div className='sideBar'>
          <div className="header-logo">
           <Link to="/dashboard">
-            <img src="image_asoroauto.webp" alt="Logo" /> {/* Replace with your logo */}
+            <img src="/LOGO.png" alt="G-OBD Logo" /> {/* Replace with your logo */}
           </Link>
         </div>
            <ul>
             <li><Link to="/dashboard">Dashboard</Link></li>
             <li><Link to="/individuals">Individuals</Link></li>
-            <li><Link to="/individuals_ChatUsers">Chat Users</Link></li>
             <li><Link to="/individualsRequest">Requests</Link></li>
             <li><Link to="/car_diagnoses">Car Diagnoses</Link></li>
-            <li><Link to="/messages">Messages</Link></li>
             <li><Link to="/settings">Settings</Link></li>
             <li><Link to="/support">Support</Link></li>
           </ul>
