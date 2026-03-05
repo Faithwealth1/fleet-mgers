@@ -1,4 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../../firebase';
+import { fetchAdminProfile } from '../../services/firestoreService';
 
 const AppContext = createContext();
 
@@ -9,45 +13,57 @@ export const useAppContext = () => {
 export const AppProvider = ({ children }) => {
   const [data, setData] = useState(null);
   const [loginStatus, setLoginStatus] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [adminProfile, setAdminProfile] = useState(null);
 
   const fetchData = async () => {
     try {
-      // Mock admin data for frontend only
-      const adminData = { username: "Admin User", id: "admin" };
+      const [usersSnap, paymentsSnap] = await Promise.all([
+        getDocs(collection(db, 'users')),
+        getDocs(collection(db, 'payments')),
+      ]);
 
-      // Set mock data
-      const usersData = [];
-      const paymentsData = [];
+      const usersData = usersSnap.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+      const paymentsData = paymentsSnap.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
 
-      setData({ users: usersData, payments: paymentsData, adminData: adminData });
-      setLoginStatus(true);
+      setData({ users: usersData, payments: paymentsData, adminData: adminProfile });
     } catch (error) {
       console.error('Error in fetchData:', error);
     }
   };
 
-  const fetchAllUsersData = async () => {
-    try {
-      // Return mock users data
-      return [];
-    } catch (error) {
-      console.error('Error fetching users data:', error);
-      return [];
-    }
-  };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user || null);
+      setLoginStatus(Boolean(user));
 
-  const fetchAllPaymentsData = async () => {
-    try {
-      // Return mock payments data
-      return [];
-    } catch (error) {
-      console.error('Error fetching payments data:', error);
-      return [];
-    }
-  };
+      if (!user) {
+        setAdminProfile(null);
+        return;
+      }
+
+      try {
+        const profile = await fetchAdminProfile(user.uid);
+        setAdminProfile(profile);
+      } catch (error) {
+        console.error('Error fetching admin profile:', error);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
-    <AppContext.Provider value={{ data, fetchData, loginStatus }}>
+    <AppContext.Provider
+      value={{
+        data,
+        setData,
+        fetchData,
+        loginStatus,
+        currentUser,
+        adminProfile,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

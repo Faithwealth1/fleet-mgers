@@ -1,36 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Ensure to import useNavigate
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ResponsiveHeader from './tools/responsiveHeader';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const IndividualRequest = () => {
-  const [data, setData] = useState(null); // State for data
-  const [sidebarVisible, setSidebarVisible] = useState(true); // Sidebar visibility
   const navigate = useNavigate();
 
-  const fetchData = async () => {
-    try {
-      // Mock admin data for frontend only
-      const adminData = { username: "Admin User", id: "admin" };
-      
-      // Mock data
-      const usersData = [];
-      const paymentsData = [];
-      setData({ users: usersData, payments: paymentsData, adminData: adminData });
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        navigate('/login');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   return (
     <div>
       <ResponsiveHeader />
-      {/* Uncomment these if needed */}
-      {/* <HeaderMore />
-      <Sidebar visible={sidebarVisible} /> */}
       <div className="container">
         <div className="containerRequest">
           <div className="head">
@@ -63,14 +52,19 @@ const IndividualRequest = () => {
               <div className="requestSummary">
                 <div>Request:</div>
                 <p>
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam recusandae eius eveniet temporibus magni nemo iste consequuntur consectetur. Suscipit reprehenderit illum molestiae maiores quod asperiores hic amet repellendus recusandae quae?
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Earum veritatis nam omnis iste esse eligendi dolorum iusto ea neque sequi, provident vitae voluptatem! Fugit blanditiis consequuntur tempora minima a exercitationem!
+                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam recusandae eius eveniet
+                  temporibus magni nemo iste consequuntur consectetur. Suscipit reprehenderit illum molestiae maiores
+                  quod asperiores hic amet repellendus recusandae quae? Lorem ipsum dolor sit amet consectetur
+                  adipisicing elit. Earum veritatis nam omnis iste esse eligendi dolorum iusto ea neque sequi,
+                  provident vitae voluptatem! Fugit blanditiis consequuntur tempora minima a exercitationem!
                 </p>
               </div>
             </div>
             <div className="right">
               <div className="requestIntro">
-                <div className="img"><img src="vite.svg" alt="" /></div>
+                <div className="img">
+                  <img src="vite.svg" alt="" />
+                </div>
                 <div className="name">name</div>
                 <div className="role">role</div>
                 <div className="number">number</div>
@@ -85,10 +79,14 @@ const IndividualRequest = () => {
                 ))}
               </div>
               <div className="reviews">
-                <div className='revHead'>Reviews</div>
+                <div className="revHead">Reviews</div>
                 {[...Array(4)].map((_, index) => (
                   <div className="indiv" key={index}>
-                    <div className="review">Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores sequi aperiam placeat, amet perspiciatis sit. Vitae fugit excepturi maiores eum est. Eius, a! Facilis ut et quaerat, sit ipsum aliquid.</div>
+                    <div className="review">
+                      Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores sequi aperiam placeat, amet
+                      perspiciatis sit. Vitae fugit excepturi maiores eum est. Eius, a! Facilis ut et quaerat, sit
+                      ipsum aliquid.
+                    </div>
                     <div className="author">- Mark</div>
                   </div>
                 ))}
@@ -99,28 +97,6 @@ const IndividualRequest = () => {
       </div>
     </div>
   );
-};
-
-// Fetching all users data
-const fetchAllUsersData = async () => {
-  try {
-    // Return mock users data
-    return [];
-  } catch (error) {
-    console.error('Error fetching users data:', error);
-    return [];
-  }
-};
-
-// Fetching all payments data
-const fetchAllPaymentsData = async () => {
-  try {
-    // Return mock payments data
-    return [];
-  } catch (error) {
-    console.error('Error fetching payments data:', error);
-    return [];
-  }
 };
 
 export default IndividualRequest;

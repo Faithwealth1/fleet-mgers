@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import '../../../stylings/styles.css'; // Import the CSS file
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase';
 
 class Sidebar extends Component {
   render() {
@@ -10,8 +12,14 @@ class Sidebar extends Component {
       return null; // Don't render anything if visible is false
     }
 
-    const handleLogout = () => {
-      navigate('/login');
+    const handleLogout = async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error('Error during logout:', error);
+      } finally {
+        navigate('/login');
+      }
     };
 
     return (

@@ -1,56 +1,58 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Make sure to import useNavigate
 import ResponsiveHeader from './tools/responsiveHeader';
-import { useAppContext } from '../pages/tools/AppContext';
 import Chart from './tools/chart';
 import Loader from './tools/loader';
+import { fetchPayments, fetchSiteUsers, fetchUsers, toMillis } from '../services/firestoreService';
 
 const Dashboard = () => {
-  // const { fetchData, data } = useAppContext();
-  const navigate = useNavigate();
-  const [data, setData]=useState({
-    users:[]
-  })
-  const[payments, setPayments]=useState([])
-  const[siteUsers, setSiteUSers]=useState([])
+  const [data, setData] = useState({ users: [] });
+  const [payments, setPayments] = useState([]);
+  const [siteUsers, setSiteUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchData = async () => {
-    setLoading(true)
+  const loadDashboardData = async () => {
+    setLoading(true);
     try {
-      // Mock admin data for frontend only
-      const adminData = { username: "Admin User", id: "admin" };
-      
-      // Mock data
-      const usersData = [];
-      const paymentsData = [];
-      const siteUsersData = [];
-      
-      setData({ users: usersData, payments: paymentsData, adminData: adminData });
-      setPayments(getPaymentChunk(usersData, paymentsData))
-      setSiteUSers(siteUsersData)
+      const [usersData, siteUsersData, paymentsData] = await Promise.all([
+        fetchUsers(),
+        fetchSiteUsers(),
+        fetchPayments(),
+      ]);
+
+      const registeredUsers = mergeUsers(siteUsersData, usersData);
+      setData({ users: registeredUsers, payments: paymentsData, adminData: null });
+      setPayments(getPaymentChunk(registeredUsers, paymentsData));
+      setSiteUsers(registeredUsers);
     } catch (error) {
       console.error('Error fetching data:', error);
-    } finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(()=>{
-    fetchData()
-  },[])
+  useEffect(() => {
+    loadDashboardData();
+    const intervalId = setInterval(loadDashboardData, 10000);
+    const onFocus = () => loadDashboardData();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
 
   return (
     <div>
       <ResponsiveHeader />
       <div className="container">
-      {loading ? (
-            <Loader/>
-          ) : (
-            <div>
-              {/* Add any additional content you want to show when data is loaded */}
-            </div>
-          )}
+        {loading ? (
+          <Loader />
+        ) : (
+          <div>
+            {/* Add any additional content you want to show when data is loaded */}
+          </div>
+        )}
         <div className="section1">
           <div className="head">
             <h2>Key metrics</h2>
@@ -58,26 +60,17 @@ const Dashboard = () => {
           <div className="metrics">
             <div className="value active">
               <div className="title">Total registered Chat users</div>
-              <span className='num'>{siteUsers?.length || 0}</span>
+              <span className="num">{siteUsers?.length || 0}</span>
             </div>
             <div className="value active_gobd">
               <div className="title">Total registered GOBD users</div>
-              <span className='num'>{data?.users?.length || 0}</span>
+              <span className="num">{data?.users?.length || 0}</span>
             </div>
-            {/* <div className="value">
-              <div className="title">Pending Messages</div>
-              <span className='num'>12</span>
-            </div> */}
-            {/* <div className="value">
-              <div className="title">Post orders processed</div>
-              <span className='num'>120</span>
-            </div> */}
           </div>
         </div>
         <div className="section2">
           <div className="chartsCont">
             <Chart />
-            {/* Assuming Chart component is already defined */}
           </div>
           <div className="individualsCont">
             <table>
@@ -89,21 +82,21 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-              {siteUsers && siteUsers.length > 0 ? (
-  siteUsers.map((item, i) => (
-    <tr key={i}>
-      <td>{item.username}</td>
-      <td>{item.email}</td>
-      <td>{item.phone}</td>
-    </tr>
-  ))
-) : (
-  <tr>
-    <td colSpan={3} style={{ textAlign: 'center' }}>
-      No users available
-    </td>
-  </tr>
-)}
+                {siteUsers && siteUsers.length > 0 ? (
+                  siteUsers.map((item, i) => (
+                    <tr key={item.id || i}>
+                      <td>{item.username || item.name || '-'}</td>
+                      <td>{item.email || '-'}</td>
+                      <td>{item.phone || item.phoneNumber || '-'}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: 'center' }}>
+                      No users available
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -121,23 +114,23 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-            {payments && payments.length > 0 ? (
-  payments.map((item, i) => (
-    <tr key={i}>
-      <td>{item.username}</td>
-      <td>{item.payment.amount}</td>
-      <td>{item.payment.payment_status}</td>
-      <td>{item.payment.subscription_plan}</td>
-      <td>{formatDate(item.payment.payment_date)}</td>
-    </tr>
-  ))
-) : (
-  <tr>
-    <td colSpan={5} style={{ textAlign: 'center' }}>
-      No payments available
-    </td>
-  </tr>
-)}
+              {payments && payments.length > 0 ? (
+                payments.map((item, i) => (
+                  <tr key={item.payment?.id || i}>
+                    <td>{item.username || '-'}</td>
+                    <td>{item.payment?.amount ?? item.payment?.payment_amount ?? '-'}</td>
+                    <td>{item.payment?.payment_status || item.payment?.status || '-'}</td>
+                    <td>{item.payment?.subscription_plan || item.payment?.plan || '-'}</td>
+                    <td>{formatDate(item.payment?.payment_date || item.payment?.created_at)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center' }}>
+                    No payments available
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -146,74 +139,88 @@ const Dashboard = () => {
   );
 };
 
-// Export the component directly since context is already handled inside
 export default Dashboard;
 
-const fetchAllUsersData = async () => {
-  try {
-    // Return mock users data
-    return [];
-  } catch (error) {
-    console.error('Error fetching users data:', error);
-    return [];
-  }
-};
+function mergeUsers(primaryUsers = [], secondaryUsers = []) {
+  const merged = [...primaryUsers, ...secondaryUsers];
+  const byKey = new Map();
 
-const fetchSiteUsers = async () => {
-  try {
-    // Return mock site users data
-    return [];
-  } catch (error) {
-    console.error('Error fetching users data:', error);
-    return [];
-  }
-};
+  merged.forEach((entry) => {
+    const key = entry.id || entry.uid || entry.user_id || entry.email || `${entry.username || ''}-${entry.phone || entry.phoneNumber || ''}`;
+    if (!key) return;
 
-const fetchAllPaymentsData = async () => {
-  try {
-    // Return mock payments data
-    return [];
-  } catch (error) {
-    console.error('Error fetching payments data:', error);
-    return [];
-  }
-};
+    const current = byKey.get(String(key));
+    if (!current) {
+      byKey.set(String(key), entry);
+      return;
+    }
 
+    const currentTime = getUserCreatedMillis(current);
+    const incomingTime = getUserCreatedMillis(entry);
+    if (incomingTime >= currentTime) {
+      byKey.set(String(key), entry);
+    }
+  });
 
-function getPaymentChunk(usersArray, paymentsArray) {
-  // Extract user IDs from the users array
-  if(usersArray.length > 0 && paymentsArray.length > 0 ){
-     const userIds = usersArray.map(user => user.id);
-
-  // Map through payments and find usernames for each payment
-  const usernames = paymentsArray
-    .filter(payment => userIds.includes(payment.user_id)) // Filter payments by user_id
-    .map(payment => {
-      const user = usersArray.find(user => user.id === payment.user_id);
-      return user ? {...user, payment} : null; // Get the username or null if not found
-    })
-    // .filter(username => username); // Remove any null values
-
-  return usernames;
-  }else{
-    // console.log("no data")
-  }
- 
+  return [...byKey.values()].sort((a, b) => getUserCreatedMillis(b) - getUserCreatedMillis(a));
 }
 
-function formatDate(timestamp) {
-  const date = new Date(timestamp);
-  
-  // Format options
+function getUserCreatedMillis(entry) {
+  return (
+    toMillis(entry?.created_at) ||
+    toMillis(entry?.createdAt) ||
+    toMillis(entry?.registered_at) ||
+    toMillis(entry?.registeredAt) ||
+    toMillis(entry?.timestamp) ||
+    0
+  );
+}
+
+function getPaymentChunk(usersArray = [], paymentsArray = []) {
+  const userMap = new Map();
+  usersArray.forEach((user) => {
+    const keys = [user.id, user.uid, user.user_id].filter(Boolean);
+    keys.forEach((key) => userMap.set(String(key), user));
+  });
+
+  return paymentsArray.map((payment) => {
+    const paymentUserId = [payment.user_id, payment.userId, payment.uid].find(Boolean);
+    const matchedUser = paymentUserId ? userMap.get(String(paymentUserId)) : null;
+
+    if (!matchedUser) {
+      return {
+        username: payment.username || 'Unknown',
+        payment,
+      };
+    }
+
+    return { ...matchedUser, payment };
+  });
+}
+
+function formatDate(value) {
+  if (!value) return '-';
+
+  let date;
+  if (typeof value?.toDate === 'function') {
+    date = value.toDate();
+  } else if (typeof value?.seconds === 'number') {
+    date = new Date(value.seconds * 1000);
+  } else {
+    date = new Date(value);
+  }
+
+  if (Number.isNaN(date.getTime())) return '-';
+
   const options = {
     year: 'numeric',
-    month: 'long', // Use 'short' for abbreviated month names
+    month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: true, // Use 12-hour format
-    timeZone: 'Africa/Lagos', // Specify the time zone
+    hour12: true,
+    timeZone: 'Africa/Lagos',
   };
 
-  return date.toLocaleString('en-NG', options); // Nigerian English locale
+  return date.toLocaleString('en-NG', options);
 }

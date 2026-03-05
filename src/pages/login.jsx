@@ -3,6 +3,8 @@ import '../../stylings/styles.css'; // Import your SCSS file
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
 import { useNavigate, Link } from 'react-router-dom';
+import { reload, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 import Loader from './tools/loader';
 
 const Login = () => {
@@ -22,11 +24,40 @@ const Login = () => {
     }
   };
 
-  const handleLogin = async (url, data) => {
-    setLoading(true)
+  const getAuthErrorMessage = (code) => {
+    switch (code) {
+      case 'auth/invalid-credential':
+      case 'auth/wrong-password':
+      case 'auth/user-not-found':
+        return 'Invalid email or password.';
+      case 'auth/too-many-requests':
+        return 'Too many attempts. Try again later.';
+      case 'auth/network-request-failed':
+        return 'Network error. Check your internet connection.';
+      case 'auth/email-not-verified':
+        return 'Email not verified. Please verify your email before login.';
+      default:
+        return 'Error during login.';
+    }
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      // Mock login for frontend only
-      setLoading(false)
+      const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      await reload(credential.user);
+
+      if (!credential.user.emailVerified) {
+        await signOut(auth);
+        const unverifiedError = new Error('Email not verified.');
+        unverifiedError.code = 'auth/email-not-verified';
+        throw unverifiedError;
+      }
+
+      setErrorMessage('');
+      setSuccessMessage('Login successful!');
       toast.success('Login successful!', {
         position: 'top-right',
         autoClose: 1000,
@@ -38,35 +69,24 @@ const Login = () => {
       });
 
       setTimeout(() => {
-        navigate('/dashboard'); // Change this to your desired route
+        navigate('/dashboard');
       }, 1000);
-      
-      return true; // Indicates success
     } catch (error) {
-      setLoading(false)
       console.error(error);
-      toast.error('Error during login!', {
+      const message = getAuthErrorMessage(error.code);
+      setErrorMessage(message);
+      setSuccessMessage('');
+      toast.error(message, {
         position: 'top-right',
-        autoClose: 1000,
+        autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
         theme: 'light',
       });
-      return false; // Indicates error
-    }
-  };
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    const data = { email, password };
-  
-    const loginSuccessAdmin = await handleLogin(`${import.meta.env.VITE_API_URL}/loginadmin`, data);
-  
-    if (loginSuccessAdmin) {
-      await handleLogin(`${import.meta.env.VITE_API_URL_2}/login`, data);
+    } finally {
+      setLoading(false);
     }
   };
   

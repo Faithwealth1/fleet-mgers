@@ -1,46 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import Header from './tools/header';
-import Sidebar from './tools/sidebar';
+import { useNavigate } from 'react-router-dom';
 import ResponsiveHeader from './tools/responsiveHeader';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const Support = () => {
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [adminData, setAdminData] = useState(null);
-  const [usersData, setUsersData] = useState([]);
-  const [paymentsData, setPaymentsData] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Mock admin data for frontend only
-        const adminData = { username: "Admin User", id: "admin" };
-        setAdminData(adminData);
-        
-        // Mock users and payments data
-        const usersData = [];
-        const paymentsData = [];
-        setUsersData(usersData);
-        setPaymentsData(paymentsData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        navigate('/login');
       }
-    };
+      setLoading(false);
+    });
 
-    fetchData();
-  }, []);
+    return () => unsubscribe();
+  }, [navigate]);
 
   if (loading) {
-    return <div>Loading...</div>; // Or any loading component
+    return <div>Loading...</div>;
   }
 
   return (
     <div>
       <ResponsiveHeader />
-      {/* <Header />
-      <Sidebar visible={sidebarVisible} /> */}
       <div className="container">
         <div className="containerSupport">
           <div className="head">Support</div>
@@ -52,20 +37,21 @@ const Support = () => {
                   <th>Subject</th>
                   <th>Client</th>
                   <th>Date</th>
-                  <th className='action'>Priority</th>
-                  <th className='action'>Action</th>
+                  <th className="action">Priority</th>
+                  <th className="action">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {/* Sample data, replace with dynamic data as needed */}
                 {Array.from({ length: 10 }).map((_, index) => (
                   <tr key={index}>
                     <td>val2</td>
                     <td>val2</td>
                     <td>val2</td>
                     <td>val2</td>
-                    <td className='action'><span className="low">low</span></td>
-                    <td className='action'>val2</td>
+                    <td className="action">
+                      <span className="low">low</span>
+                    </td>
+                    <td className="action">val2</td>
                   </tr>
                 ))}
               </tbody>

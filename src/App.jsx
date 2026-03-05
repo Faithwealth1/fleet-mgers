@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Dashboard from './pages/dashboard';
 import Individuals from './pages/individuals';

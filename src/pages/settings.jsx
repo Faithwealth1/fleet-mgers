@@ -1,38 +1,39 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from './tools/header';
 import Sidebar from './tools/sidebar';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase';
+import { fetchAdminProfile } from '../services/firestoreService';
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [loading, setLoading] = useState(true);
   const [adminData, setAdminData] = useState(null);
-  const [usersData, setUsersData] = useState([]);
-  const [paymentsData, setPaymentsData] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
       try {
-        // Mock admin data for frontend only
-        const adminData = { username: "Admin User", id: "admin" };
-        setAdminData(adminData);
-        
-        // Mock users and payments data
-        const usersData = [];
-        const paymentsData = [];
-        setUsersData(usersData);
-        setPaymentsData(paymentsData);
+        const profile = await fetchAdminProfile(user.uid);
+        setAdminData(profile);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
-    };
+    });
 
-    fetchData();
-  }, []);
+    return () => unsubscribe();
+  }, [navigate]);
 
   if (loading) {
-    return <div>Loading...</div>; // Or any loading component
+    return <div>Loading...</div>;
   }
 
   return (
@@ -41,10 +42,10 @@ const Settings = () => {
       <Sidebar visible={sidebarVisible} />
       <div className="container">
         <div className="containerSettings">
-          <div className="headerSection">
-            Settings
+          <div className="headerSection">Settings</div>
+          <div style={{ marginTop: '16px' }}>
+            Logged in as: {adminData?.username || adminData?.email || 'Admin'}
           </div>
-          {/* Additional settings content can go here */}
         </div>
       </div>
     </div>
