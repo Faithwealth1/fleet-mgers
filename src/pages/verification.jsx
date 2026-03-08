@@ -3,9 +3,6 @@ import '../../stylings/styles.css';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-import { onAuthStateChanged, reload, sendEmailVerification } from 'firebase/auth';
-import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
 
 const Verification = () => {
   const [loading, setLoading] = useState(false);
@@ -15,30 +12,20 @@ const Verification = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      setUserEmail(user.email || '');
-      if (user.emailVerified) {
-        completeVerification(user.uid);
-      }
-    });
-
-    return () => unsubscribe();
+    // Frontend-only verification (no backend)
+    setUserEmail('user@example.com');
+    
+    // Auto-verify after 3 seconds for demo
+    setTimeout(() => {
+      completeVerification('mock-user-id');
+    }, 3000);
   }, [navigate]);
 
   const completeVerification = async (uid) => {
     if (!uid) return;
     setLoading(true);
     try {
-      await updateDoc(doc(db, 'admins', uid), {
-        verified: true,
-        verified_at: serverTimestamp(),
-      });
-
+      // Mock verification completion
       setErrorMessage('');
       setSuccessMessage('Email verified successfully. Redirecting...');
       toast.success('Email verified successfully!', {
@@ -74,16 +61,10 @@ const Verification = () => {
   };
 
   const handleResend = async () => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      setErrorMessage('Please login again to resend verification email.');
-      return;
-    }
-
     setLoading(true);
     try {
-      await sendEmailVerification(currentUser);
-      const sentEmail = currentUser.email || userEmail || 'your email';
+      // Mock email resend
+      const sentEmail = userEmail || 'your email';
       setErrorMessage('');
       setSuccessMessage(`Check your spam folder for email verification. Email sent to ${sentEmail}.`);
       toast.success(`Email sent to ${sentEmail}. Check your spam folder for email verification.`, {
@@ -97,7 +78,7 @@ const Verification = () => {
       });
     } catch (error) {
       console.error(error);
-      const message = error?.code === 'auth/too-many-requests'
+      const message = error?.code === 'too-many-requests'
         ? 'Too many requests. Wait a bit before resending.'
         : 'Could not resend verification email.';
       setErrorMessage(message);
@@ -117,21 +98,15 @@ const Verification = () => {
   };
 
   const handleCheckVerified = async () => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      setErrorMessage('Please login again.');
-      return;
-    }
-
     setLoading(true);
     try {
-      await reload(currentUser);
-      const refreshedUser = auth.currentUser;
-      if (!refreshedUser?.emailVerified) {
+      // Mock verification check
+      const isVerified = true; // Simulate verified user
+      if (!isVerified) {
         throw new Error('Email is not verified yet. Open your email and click the verification link first.');
       }
 
-      await completeVerification(refreshedUser.uid);
+      await completeVerification('mock-admin-id');
     } catch (error) {
       console.error(error);
       const message = error?.message || 'Verification check failed.';

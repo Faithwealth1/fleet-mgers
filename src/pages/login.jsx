@@ -3,8 +3,6 @@ import '../../stylings/styles.css'; // Import your SCSS file
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
 import { useNavigate, Link } from 'react-router-dom';
-import { reload, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '../firebase';
 import Loader from './tools/loader';
 
 const Login = () => {
@@ -26,18 +24,16 @@ const Login = () => {
 
   const getAuthErrorMessage = (code) => {
     switch (code) {
-      case 'auth/invalid-credential':
-      case 'auth/wrong-password':
-      case 'auth/user-not-found':
-        return 'Invalid email or password.';
-      case 'auth/too-many-requests':
+      case 'invalid-credential':
+        return 'Please enter valid email and password.';
+      case 'too-many-requests':
         return 'Too many attempts. Try again later.';
-      case 'auth/network-request-failed':
+      case 'network-request-failed':
         return 'Network error. Check your internet connection.';
-      case 'auth/email-not-verified':
+      case 'email-not-verified':
         return 'Email not verified. Please verify your email before login.';
       default:
-        return 'Error during login.';
+        return 'Error during form submission.';
     }
   };
   
@@ -46,19 +42,17 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
-      await reload(credential.user);
-
-      if (!credential.user.emailVerified) {
-        await signOut(auth);
-        const unverifiedError = new Error('Email not verified.');
-        unverifiedError.code = 'auth/email-not-verified';
-        throw unverifiedError;
+      // Frontend-only validation (no backend)
+      if (!email || !password) {
+        const error = new Error('Please fill in all fields');
+        error.code = 'invalid-credential';
+        throw error;
       }
 
+      // Show success message for demo (no actual authentication)
       setErrorMessage('');
-      setSuccessMessage('Login successful!');
-      toast.success('Login successful!', {
+      setSuccessMessage('Form submitted successfully!');
+      toast.success('Form submitted!', {
         position: 'top-right',
         autoClose: 1000,
         hideProgressBar: false,

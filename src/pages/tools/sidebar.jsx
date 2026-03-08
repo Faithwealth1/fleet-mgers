@@ -1,8 +1,6 @@
 import React, { Component } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
-import '../../../stylings/styles.css'; // Import the CSS file
-import { signOut } from 'firebase/auth';
-import { auth } from '../../firebase';
+import '../../../stylings/styles.css'; // Import CSS file
 
 class Sidebar extends Component {
   render() {
@@ -14,7 +12,8 @@ class Sidebar extends Component {
 
     const handleLogout = async () => {
       try {
-        await signOut(auth);
+        // Frontend-only logout
+        console.log('Logging out...');
       } catch (error) {
         console.error('Error during logout:', error);
       } finally {

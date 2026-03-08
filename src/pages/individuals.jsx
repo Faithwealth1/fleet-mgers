@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ResponsiveHeader from './tools/responsiveHeader';
 import Loader from './tools/loader';
-import { fetchUsers } from '../services/firestoreService';
 
 const Individuals = () => {
   const [users, setUsers] = useState([]);
@@ -10,8 +9,7 @@ const Individuals = () => {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const usersData = await fetchUsers();
-      setUsers(usersData);
+      setUsers([]);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {

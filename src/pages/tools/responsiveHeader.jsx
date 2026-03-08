@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../../../stylings/styles.css';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../../firebase';
-import { fetchAdminProfile, fetchDiagnoses, fetchUsers } from '../../services/firestoreService';
 
 const ResponsiveHeader = () => {
   const navigate = useNavigate();
@@ -29,7 +26,8 @@ const ResponsiveHeader = () => {
 
   const logout = async () => {
     try {
-      await signOut(auth);
+      // Frontend-only logout
+      console.log('Logging out...');
       navigate('/login');
     } catch (error) {
       console.error('Error during logout:', error);
@@ -37,41 +35,17 @@ const ResponsiveHeader = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      try {
-        const adminProfile = await fetchAdminProfile(user.uid);
-        if (adminProfile?.username) {
-          setUsername(adminProfile.username);
-        } else if (user.displayName) {
-          setUsername(user.displayName);
-        } else {
-          setUsername('Admin');
-        }
-      } catch (error) {
-        console.error('Error fetching admin profile:', error);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
+    // Frontend-only - no authentication or data
+    setUsername('Guest');
+    
+    // Set empty data arrays
+    setGobdUsers([]);
+    setDiagnoses([]);
+  }, []);
 
   useEffect(() => {
-    const loadHeaderCounts = async () => {
-      try {
-        const [usersData, diagnosesData] = await Promise.all([fetchUsers(), fetchDiagnoses()]);
-        setGobdUsers(usersData);
-        setDiagnoses(diagnosesData);
-      } catch (error) {
-        console.error('Error fetching header data:', error);
-      }
-    };
-
-    loadHeaderCounts();
+    // Mock data loading for header counts
+    // Data is already set in the previous useEffect
   }, []);
 
   return (

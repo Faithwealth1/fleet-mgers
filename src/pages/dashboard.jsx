@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ResponsiveHeader from './tools/responsiveHeader';
-import Chart from './tools/chart';
 import Loader from './tools/loader';
-import { fetchPayments, fetchSiteUsers, fetchUsers, toMillis } from '../services/firestoreService';
+import Chart from './tools/chart';
 
 const Dashboard = () => {
   const [data, setData] = useState({ users: [] });
@@ -13,16 +12,9 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const [usersData, siteUsersData, paymentsData] = await Promise.all([
-        fetchUsers(),
-        fetchSiteUsers(),
-        fetchPayments(),
-      ]);
-
-      const registeredUsers = mergeUsers(siteUsersData, usersData);
-      setData({ users: registeredUsers, payments: paymentsData, adminData: null });
-      setPayments(getPaymentChunk(registeredUsers, paymentsData));
-      setSiteUsers(registeredUsers);
+      setData({ users: [], payments: [], adminData: null });
+      setPayments([]);
+      setSiteUsers([]);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -223,4 +215,19 @@ function formatDate(value) {
   };
 
   return date.toLocaleString('en-NG', options);
+}
+
+function toMillis(value) {
+  if (!value) return 0;
+
+  if (typeof value?.toDate === 'function') {
+    return value.toDate().getTime();
+  }
+
+  if (typeof value?.seconds === 'number') {
+    return value.seconds * 1000;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }

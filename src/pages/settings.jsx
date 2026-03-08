@@ -2,9 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './tools/header';
 import Sidebar from './tools/sidebar';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
-import { fetchAdminProfile } from '../services/firestoreService';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -13,23 +10,23 @@ const Settings = () => {
   const [adminData, setAdminData] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      try {
-        const profile = await fetchAdminProfile(user.uid);
-        setAdminData(profile);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
+    // Frontend-only - no authentication
+    const isAuthenticated = false; // No authenticated user
+    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
+    // Set minimal admin data for UI
+    setAdminData({
+      id: null,
+      username: 'Guest',
+      email: 'guest@example.com',
+      role: 'guest'
     });
-
-    return () => unsubscribe();
+    
+    setLoading(false);
   }, [navigate]);
 
   if (loading) {
